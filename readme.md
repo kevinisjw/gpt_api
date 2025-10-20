@@ -19,6 +19,29 @@ curl "http://localhost:8100/bazi/health"
 curl "http://localhost:8100/bazi/info"
 ```
 
+## 一键部署网页 + API
+
+1. 准备 `.env`：可以参考 `.env.example`，至少需要设置 `OPENROUTER_API_KEY`。
+2. 安装并启动 Docker 服务（支持 `docker compose` 或 `docker-compose`）。
+3. 在项目根目录执行：
+
+   ```bash
+   ./deploy.sh
+   ```
+
+   脚本会自动构建镜像并启动容器，默认监听 `8000` 端口。
+
+部署完成后：
+- 访问 `http://服务器IP:8000/face` 获取面相分析页面。
+- 访问 `http://服务器IP:8000/fortune` 获取命运测算页面。
+- API 入口保持为 `http://服务器IP:8000/generate`。
+
+停止服务：
+
+```bash
+docker compose -f docker-compose.yml down
+# 或者使用 docker-compose down
+```
 
 ## 命运测算 API（统一 `/generate` 入口）
 

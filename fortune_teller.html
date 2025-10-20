@@ -790,6 +790,17 @@
       prompt: document.getElementById("debug-prompt"),
     };
 
+    const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+
+    function resolveApiEndpoint(path = "/generate") {
+      const origin = window.location.origin;
+      const safePath = path.startsWith("/") ? path : `/${path}`;
+      if (origin && origin !== "null") {
+        return origin.replace(/\/$/, "") + safePath;
+      }
+      return `${DEFAULT_API_BASE}${safePath}`;
+    }
+
     function setBanner(type, message) {
       banner.className = "status-banner";
       if (!message) {
@@ -1145,7 +1156,7 @@
           model: "--",
         });
 
-        const endpoint = "http://localhost:8000/generate";
+        const endpoint = resolveApiEndpoint();
         const requestStarted = performance.now();
         const response = await fetch(endpoint, {
           method: "POST",
@@ -1218,7 +1229,7 @@
 
         if (fetchFailed) {
           if (fortuneActive) {
-            msg = "无法连接命运测算服务：http://localhost:8000/generate，请确认服务已启动。";
+            msg = `无法连接命运测算服务：${resolveApiEndpoint()}，请确认服务已启动。`;
           } else if (baziActive) {
             msg = "命运测算服务暂不可用，请稍后再试。";
           }

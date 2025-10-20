@@ -7,7 +7,7 @@ PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$PROJECT_DIR/logs"
 SERVICE_PORT=8000
 SERVICE_APP="$PROJECT_DIR/gpt_api/gpt_services.py"
-HTML_PATH="$PROJECT_DIR/face_teller.html"
+FRONTEND_URL="http://127.0.0.1:${SERVICE_PORT}/face"
 
 mkdir -p "$LOG_DIR"
 
@@ -77,17 +77,13 @@ start_service
 echo "等待 GPT 服务启动..."
 wait_for_port "$SERVICE_PORT"
 
-if [[ -f "$HTML_PATH" ]]; then
-  echo "服务就绪，尝试打开页面：$HTML_PATH"
-  if command -v open >/dev/null 2>&1; then
-    open "$HTML_PATH"
-  elif command -v xdg-open >/dev/null 2>&1; then
-    xdg-open "$HTML_PATH"
-  else
-    echo "无法自动打开浏览器，请手动访问文件：$HTML_PATH"
-  fi
+echo "服务就绪，尝试打开页面：$FRONTEND_URL"
+if command -v open >/dev/null 2>&1; then
+  open "$FRONTEND_URL"
+elif command -v xdg-open >/dev/null 2>&1; then
+  xdg-open "$FRONTEND_URL"
 else
-  echo "未找到页面文件：$HTML_PATH"
+  echo "无法自动打开浏览器，请手动访问：$FRONTEND_URL"
 fi
 
 echo "按 Ctrl+C 可停止服务。"

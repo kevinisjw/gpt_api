@@ -1,8 +1,9 @@
 import time
+from pathlib import Path
 from typing import AsyncGenerator, Dict, Union
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, StreamingResponse
 from openai import OpenAI, AsyncOpenAI
 
 from logger_setup import logger
@@ -11,6 +12,11 @@ from gpt_config import gpt_general_config
 from gpt_models import GenerationRequest, GenerationResponse, HealthResponse
 from task_prompt.fortune_prompt import FortuneCallBodyBuilder
 from task_prompt.face_prompt import FaceCallBodyBuilder
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+FACE_PAGE_PATH = BASE_DIR / "face_teller.html"
+FORTUNE_PAGE_PATH = BASE_DIR / "fortune_teller.html"
 
 
 class OpenRouterService:
@@ -194,6 +200,14 @@ app.add_middleware(
 )
 
 
+def _serve_page(page_path: Path, not_found_message: str) -> FileResponse:
+    """Serve a static HTML page with existence checks."""
+    if not page_path.exists():
+        logger.error("Static page not found at {}", page_path)
+        raise HTTPException(status_code=404, detail=not_found_message)
+    return FileResponse(page_path)
+
+
 @app.post("/generate", response_model=GenerationResponse)
 async def generate_text_endpoint(request: GenerationRequest):
     """
@@ -209,10 +223,29 @@ async def health_check_endpoint():
     return openrouter_service.health_check()
 
 
+@app.get("/face")
+async def face_page():
+    """面相分析前端页面"""
+    return _serve_page(FACE_PAGE_PATH, "face_teller.html 未部署")
+
+
+@app.get("/fortune")
+async def fortune_page():
+    """命运测算前端页面"""
+    return _serve_page(FORTUNE_PAGE_PATH, "fortune_teller.html 未部署")
+
+
 @app.get("/")
 async def root():
     """根路径"""
-    return {"message": "OpenRouter API Service is running"}
+    return {
+        "message": "OpenRouter API Service is running",
+        "pages": {
+            "face": "/face",
+            "fortune": "/fortune",
+            "api": "/generate",
+        },
+    }
 
 
 if __name__ == "__main__":

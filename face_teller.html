@@ -814,6 +814,16 @@
 
     let processedImageBase64 = null;
     let processedImageMeta = null;
+    const DEFAULT_API_BASE = "http://127.0.0.1:8000";
+
+    function resolveApiEndpoint(path = "/generate") {
+      const origin = window.location.origin;
+      const safePath = path.startsWith("/") ? path : `/${path}`;
+      if (origin && origin !== "null") {
+        return origin.replace(/\/$/, "") + safePath;
+      }
+      return `${DEFAULT_API_BASE}${safePath}`;
+    }
 
     function setBanner(type, message) {
       banner.className = "status-banner";
@@ -1279,7 +1289,7 @@
           model: "--",
         });
 
-        const endpoint = "http://localhost:8000/generate";
+        const endpoint = resolveApiEndpoint();
         const requestStarted = performance.now();
         const response = await fetch(endpoint, {
           method: "POST",
@@ -1354,7 +1364,7 @@
         const fetchFailed = error instanceof TypeError || msg === "Failed to fetch" || msg === "NetworkError when attempting to fetch resource.";
 
         if (fetchFailed) {
-          msg = "无法连接面相分析服务：http://localhost:8000/generate，请确认服务已启动。";
+          msg = `无法连接面相分析服务：${resolveApiEndpoint()}，请确认服务已启动。`;
         } else if (!analysisActive && !baziActive && !imageActive) {
           msg = "网络请求失败，请检查后端服务或网络设置。";
         }
