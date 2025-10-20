@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>AI 面相合参测算</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-top: #040913;
+      --bg-bottom: #0f1f3b;
+      --panel: rgba(18, 27, 46, 0.85);
+      --glass: rgba(10, 18, 32, 0.72);
+      --border: rgba(148, 163, 184, 0.18);
+      --accent: #ec4899;
+      --accent-soft: rgba(236, 72, 153, 0.22);
+      --accent-gradient: linear-gradient(135deg, #ec4899, #a855f7);
+      --text-primary: #f8fafc;
+      --text-secondary: rgba(226, 232, 240, 0.86);
+      --text-muted: rgba(148, 163, 184, 0.72);
+      --success: #34d399;
+      --danger: #fb7185;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Poppins", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      color: var(--text-primary);
+      background: radial-gradient(circle at 20% 15%, rgba(236, 72, 153, 0.25), transparent 45%),
+                  radial-gradient(circle at 85% 15%, rgba(79, 70, 229, 0.2), transparent 48%),
+                  linear-gradient(160deg, var(--bg-top), var(--bg-bottom));
+      display: flex;
+      justify-content: center;
+      padding: clamp(24px, 6vw, 60px) clamp(18px, 6vw, 64px);
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1300px;
+      background: var(--glass);
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: 0 28px 80px rgba(5, 12, 26, 0.55);
+      padding: clamp(28px, 6vw, 46px);
+      backdrop-filter: blur(24px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+    }
+
+    header {
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 2;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      letter-spacing: 2px;
+      font-weight: 700;
+    }
+
+    header p {
+      margin: 12px 0 0;
+      max-width: 720px;
+      line-height: 1.7;
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px 30px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      pointer-events: none;
+    }
+
+    .panel-title {
+      margin: 0 0 24px;
+      font-size: 19px;
+      letter-spacing: 1px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-title::before {
+      content: "";
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(236, 72, 153, 0.35);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    label {
+      display: grid;
+      gap: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 14px;
+      letter-spacing: 0.6px;
+    }
+
+    input, select {
+      background: rgba(8, 15, 30, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-size: 15px;
+      transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: rgba(236, 72, 153, 0.55);
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .toggle-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-control span {
+      font-size: 14px;
+      color: var(--text-secondary);
+      letter-spacing: 0.6px;
+    }
+
+    .toggle-control input[type="checkbox"] {
+      width: auto;
+      height: 18px;
+      accent-color: var(--accent);
+    }
+
+    .image-upload {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+      border: 1px dashed rgba(236, 72, 153, 0.45);
+      border-radius: 16px;
+      background: rgba(236, 72, 153, 0.08);
+    }
+
+    .image-upload label {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .image-preview {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .image-preview img {
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid rgba(236, 72, 153, 0.35);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .image-meta {
+      display: grid;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .image-meta strong {
+      color: var(--text-secondary);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: rgba(236, 72, 153, 0.8);
+    }
+
+    .actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 26px;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .primary-btn {
+      background: var(--accent-gradient);
+      color: white;
+      box-shadow: 0 18px 36px rgba(236, 72, 153, 0.32);
+    }
+
+    .primary-btn:hover:not([disabled]) {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 44px rgba(236, 72, 153, 0.38);
+    }
+
+    .primary-btn[disabled] {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
+    .ghost-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .status-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      flex: 1;
+    }
+
+    .status-banner {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+
+    .status-banner.show { display: block; }
+    .status-banner.success {
+      background: rgba(52, 211, 153, 0.18);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      color: rgba(209, 250, 229, 0.92);
+    }
+    .status-banner.error {
+      background: rgba(251, 113, 133, 0.18);
+      border: 1px solid rgba(251, 113, 133, 0.35);
+      color: rgba(254, 226, 226, 0.92);
+    }
+
+    .progress-track {
+      display: grid;
+      gap: 20px;
+      position: relative;
+    }
+
+    .step {
+      position: relative;
+      padding: 18px 18px 18px 74px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(10, 18, 34, 0.7);
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .step::before {
+      content: attr(data-index);
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(236, 72, 153, 0.25);
+      border: 1px solid rgba(236, 72, 153, 0.4);
+      display: grid;
+      place-items: center;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: 40px;
+      top: 56px;
+      width: 2px;
+      height: calc(100% - 32px);
+      background: linear-gradient(180deg, rgba(236, 72, 153, 0.4), rgba(236, 72, 153, 0.05));
+    }
+
+    .step h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+
+    .step p {
+      margin: 8px 0 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .step-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.6);
+    }
+
+    .step[data-state="active"] {
+      border-color: rgba(236, 72, 153, 0.6);
+      box-shadow: 0 18px 40px rgba(236, 72, 153, 0.2);
+    }
+
+    .step[data-state="active"] .dot {
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    .step[data-state="completed"] {
+      border-color: rgba(52, 211, 153, 0.65);
+      box-shadow: 0 14px 32px rgba(52, 211, 153, 0.18);
+    }
+
+    .step[data-state="completed"] .dot {
+      background: var(--success);
+      animation: none;
+    }
+
+    .step[data-state="error"] {
+      border-color: rgba(251, 113, 133, 0.75);
+      box-shadow: 0 14px 30px rgba(251, 113, 133, 0.2);
+    }
+
+    .step[data-state="error"] .dot {
+      background: var(--danger);
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+    }
+
+    .results-grid {
+      display: grid;
+      gap: 22px;
+      margin-top: 26px;
+    }
+
+    .result-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px 32px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .result-panel h2 {
+      margin: 0 0 24px;
+      font-size: 19px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: 1px;
+    }
+
+    .result-panel h2::before {
+      content: "";
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: rgba(236, 72, 153, 0.22);
+      border: 1px solid rgba(236, 72, 153, 0.28);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .info-row {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .info-row span:first-child {
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+    }
+
+    .pillars {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .pillar {
+      background: rgba(34, 47, 72, 0.4);
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      text-align: center;
+    }
+
+    .pillar span {
+      display: block;
+      font-size: 13px;
+      color: rgba(203, 213, 225, 0.7);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .pillar strong {
+      font-size: 19px;
+      letter-spacing: 2px;
+    }
+
+    .fortune-wrapper {
+      margin-top: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .fortune-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .fortune-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(236, 72, 153, 0.22);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: grid;
+      gap: 6px;
+      position: relative;
+      min-height: 120px;
+    }
+
+    .fortune-item.current {
+      background: rgba(236, 72, 153, 0.16);
+      border-color: rgba(236, 72, 153, 0.45);
+      box-shadow: 0 18px 32px rgba(236, 72, 153, 0.24);
+    }
+
+    .fortune-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
+    }
+
+    .fortune-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(236, 72, 153, 0.22);
+      color: #ffe4f5;
+      font-size: 11px;
+      letter-spacing: 0.6px;
+    }
+
+    .fortune-output {
+      background: rgba(10, 20, 38, 0.6);
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 22px 24px;
+      line-height: 1.8;
+      font-size: 15px;
+      color: rgba(226, 232, 240, 0.96);
+      white-space: pre-wrap;
+      min-height: 220px;
+      max-height: 420px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    .debug-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .debug-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .debug-row span:first-child { color: var(--text-muted); letter-spacing: 0.6px; }
+    .debug-row span:last-child {
+      font-family: "JetBrains Mono", "Courier New", monospace;
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+
+    .debug-prompt-title {
+      margin: 18px 0 8px;
+      font-size: 14px;
+      letter-spacing: 0.6px;
+      color: var(--text-secondary);
+    }
+
+    .debug-prompt {
+      background: rgba(8, 16, 32, 0.6);
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      padding: 14px;
+      max-height: 280px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-size: 13px;
+      color: rgba(226, 232, 240, 0.92);
+      scroll-behavior: smooth;
+    }
+
+    @media (max-width: 1120px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+      .image-preview {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .fortune-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .image-preview {
+        grid-template-columns: minmax(0, 1fr);
+        text-align: center;
+      }
+      .fortune-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      body {
+        padding: 18px;
+      }
+      .app-shell {
+        padding: 22px 18px;
+      }
+      .panel,
+      .result-panel {
+        padding: 24px 20px;
+      }
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .fortune-list {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <h1>AI 面相合参测算</h1>
+      <p>上传正面人像并填写出生信息，系统将自动完成图像质检、八字排盘与面相合参分析，支持流式输出与调试信息查看。</p>
+    </header>
+
+    <section class="top-grid">
+      <section class="panel form-panel">
+        <h2 class="panel-title">填写求测信息</h2>
+        <form id="face-form" autocomplete="off">
+          <div class="form-grid">
+            <label>
+              姓名
+              <input type="text" name="name" placeholder="例如：王鸥" value="王鸥" required>
+            </label>
+
+            <label>
+              性别
+              <select name="gender" required>
+                <option value="女" selected>女</option>
+                <option value="男">男</option>
+                <option value="female">Female / 女</option>
+                <option value="male">Male / 男</option>
+              </select>
+            </label>
+
+            <label>
+              出生时间
+              <input type="datetime-local" name="birth_datetime" value="1982-10-28T12:00" required>
+              <span class="hint">请确保为当地真实出生时间</span>
+            </label>
+
+            <label>
+              出生地
+              <input type="text" name="location_name" placeholder="例如：中国南宁市" value="中国南宁市" required>
+            </label>
+
+            <label>
+              测算任务
+              <select name="task_id" id="task-id" required>
+                <option value="面相分析" selected>面相分析</option>
+              </select>
+            </label>
+
+            <div class="image-upload">
+              <label>
+                人脸照片
+                <input type="file" name="face_image" id="face-image" accept="image/*" required>
+              </label>
+              <div class="hint">支持 JPG/PNG，最短边必须 ≥ 240 像素；如长边超过 640 将自动压缩。</div>
+              <div class="image-preview" id="image-preview" hidden>
+                <img id="preview-img" alt="人脸预览">
+                <div class="image-meta" id="image-meta"></div>
+              </div>
+            </div>
+
+            <label class="toggle-control">
+              <span>流式输出</span>
+              <input type="checkbox" name="stream" id="stream-output">
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="primary-btn" type="submit"><span>开始分析</span></button>
+            <button class="ghost-btn" type="reset">重置</button>
+            <div class="status-text" id="form-status-text">准备就绪</div>
+          </div>
+          <div class="status-banner" id="form-banner"></div>
+        </form>
+      </section>
+
+      <aside class="panel progress-panel">
+        <h2 class="panel-title">分析流程</h2>
+        <div class="progress-track" id="progress-steps">
+          <article class="step" data-state="pending" data-index="01" id="step-info">
+            <h3>资料校验</h3>
+            <p>确认姓名、性别、出生时间/地点与面部图像质量。</p>
+            <div class="step-status"><span class="dot"></span><span class="step-status-text">等待提交…</span></div>
+          </article>
+          <article class="step" data-state="pending" data-index="02" id="step-image">
+            <h3>人像质检</h3>
+            <p>检测分辨率、光线、遮挡并执行必要的尺寸压缩。</p>
+            <div class="step-status"><span class="dot"></span><span class="step-status-text">尚未开始</span></div>
+          </article>
+          <article class="step" data-state="pending" data-index="03" id="step-bazi">
+            <h3>八字排盘</h3>
+            <p>调用八字服务获取四柱、真太阳时与大运信息。</p>
+            <div class="step-status"><span class="dot"></span><span class="step-status-text">尚未开始</span></div>
+          </article>
+          <article class="step" data-state="pending" data-index="04" id="step-analysis">
+            <h3>面相合参</h3>
+            <p>融合面部特征与八字命理，生成结构化面相报告。</p>
+            <div class="step-status"><span class="dot"></span><span class="step-status-text">尚未开始</span></div>
+          </article>
+        </div>
+      </aside>
+    </section>
+
+    <section class="results-grid">
+      <article class="result-panel">
+        <h2>八字排盘</h2>
+        <div class="info-grid" id="bazi-summary">
+          <div class="info-row"><span>状态</span><span>等待测算…</span></div>
+        </div>
+        <div class="pillars" id="bazi-pillars" hidden></div>
+        <div class="fortune-wrapper">
+          <h4>个人大运时间轴</h4>
+          <ul class="fortune-list" id="fortune-timeline" hidden></ul>
+        </div>
+      </article>
+
+      <article class="result-panel">
+        <h2>面相合参解读</h2>
+        <div id="analysis-output" class="fortune-output">等待分析…</div>
+      </article>
+
+      <article class="result-panel" id="debug-panel">
+        <h2>调试信息</h2>
+        <div class="debug-grid">
+          <div class="debug-row"><span>模型名称</span><span id="debug-model">--</span></div>
+          <div class="debug-row"><span>Prompt Tokens</span><span id="debug-prompt-tokens">--</span></div>
+          <div class="debug-row"><span>Completion Tokens</span><span id="debug-completion-tokens">--</span></div>
+          <div class="debug-row"><span>Total Tokens</span><span id="debug-total-tokens">--</span></div>
+          <div class="debug-row"><span>响应时间</span><span id="debug-response-ms">--</span></div>
+          <div class="debug-row"><span>是否流式</span><span id="debug-stream">--</span></div>
+          <div class="debug-row"><span>任务 ID</span><span id="debug-task-id">--</span></div>
+          <div class="debug-row"><span>调用 ID</span><span id="debug-call-id">--</span></div>
+          <div class="debug-row"><span>图像尺寸</span><span id="debug-image-size">--</span></div>
+          <div class="debug-row"><span>图像缩放</span><span id="debug-image-scale">--</span></div>
+          <div class="debug-row"><span>错误信息</span><span id="debug-error">--</span></div>
+        </div>
+        <h4 class="debug-prompt-title">模型 Prompt</h4>
+        <pre class="debug-prompt" id="debug-prompt">尚未生成</pre>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById("face-form");
+    const submitBtn = form.querySelector(".primary-btn");
+    const statusText = document.getElementById("form-status-text");
+    const banner = document.getElementById("form-banner");
+    const streamToggle = document.getElementById("stream-output");
+    const taskSelect = document.getElementById("task-id");
+    const steps = {
+      info: document.getElementById("step-info"),
+      image: document.getElementById("step-image"),
+      bazi: document.getElementById("step-bazi"),
+      analysis: document.getElementById("step-analysis"),
+    };
+
+    const baziSummary = document.getElementById("bazi-summary");
+    const baziPillars = document.getElementById("bazi-pillars");
+    const fortuneTimeline = document.getElementById("fortune-timeline");
+    const analysisOutput = document.getElementById("analysis-output");
+    const imageInput = document.getElementById("face-image");
+    const imagePreview = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
+    const imageMeta = document.getElementById("image-meta");
+
+    const diagnostics = {
+      model: document.getElementById("debug-model"),
+      promptTokens: document.getElementById("debug-prompt-tokens"),
+      completionTokens: document.getElementById("debug-completion-tokens"),
+      totalTokens: document.getElementById("debug-total-tokens"),
+      responseMs: document.getElementById("debug-response-ms"),
+      stream: document.getElementById("debug-stream"),
+      taskId: document.getElementById("debug-task-id"),
+      callId: document.getElementById("debug-call-id"),
+      imgSize: document.getElementById("debug-image-size"),
+      imgScale: document.getElementById("debug-image-scale"),
+      error: document.getElementById("debug-error"),
+      prompt: document.getElementById("debug-prompt"),
+    };
+
+    let processedImageBase64 = null;
+    let processedImageMeta = null;
+
+    function setBanner(type, message) {
+      banner.className = "status-banner";
+      if (!message) {
+        banner.textContent = "";
+        return;
+      }
+      banner.classList.add("show");
+      banner.classList.add(type === "error" ? "error" : "success");
+      banner.textContent = message;
+    }
+
+    function setStatusText(text) {
+      statusText.textContent = text;
+    }
+
+    function updateStep(step, state, message) {
+      const element = steps[step];
+      if (!element) return;
+      element.dataset.state = state;
+      const textEl = element.querySelector(".step-status-text");
+      if (textEl && message) textEl.textContent = message;
+    }
+
+    function resetDiagnostics() {
+      updateDiagnostics(null);
+    }
+
+    function updateDiagnostics(meta) {
+      const info = meta || {};
+      const isStreaming = !!info.stream;
+
+      diagnostics.model.textContent = formatDiagnosticValue(info.model, {
+        isStreaming,
+        streamingText: "流式模式待返回",
+      });
+      const promptTokens = info.prompt_tokens ?? info.promptTokens;
+      diagnostics.promptTokens.textContent = formatDiagnosticValue(promptTokens, {
+        isStreaming,
+        streamingText: "流式模式暂不提供",
+      });
+      const completionTokens = info.completion_tokens ?? info.completionTokens;
+      diagnostics.completionTokens.textContent = formatDiagnosticValue(completionTokens, {
+        isStreaming,
+        streamingText: "流式模式暂不提供",
+      });
+      const totalTokens = info.total_tokens ?? info.totalTokens;
+      diagnostics.totalTokens.textContent = formatDiagnosticValue(totalTokens, {
+        isStreaming,
+        streamingText: "流式模式暂不提供",
+      });
+      const responseMs = info.response_ms ?? info.responseMs;
+      diagnostics.responseMs.textContent =
+        responseMs !== undefined && responseMs !== null && responseMs !== ""
+          ? `${responseMs} ms`
+          : formatDiagnosticValue(null, {
+              isStreaming,
+              streamingText: "流式模式暂未统计",
+            });
+      diagnostics.stream.textContent = info.stream == null ? "--" : info.stream ? "是" : "否";
+      diagnostics.taskId.textContent = formatDiagnosticValue(info.task_id ?? info.taskId, {
+        isStreaming,
+        streamingText: "流式模式自动填充",
+      });
+      diagnostics.callId.textContent = formatDiagnosticValue(info.call_id ?? info.callId, {
+        isStreaming,
+        streamingText: "流式模式自动填充",
+      });
+      diagnostics.imgSize.textContent = formatDiagnosticValue(info.image_size ?? info.imageSize, {
+        isStreaming,
+      });
+      diagnostics.imgScale.textContent = formatDiagnosticValue(info.image_scale ?? info.imageScale, {
+        isStreaming,
+      });
+      diagnostics.error.textContent = formatDiagnosticValue(info.error, {
+        isStreaming,
+        defaultText: "--",
+        streamingText: "--",
+      });
+      diagnostics.prompt.textContent = formatDiagnosticValue(info.prompt, {
+        isStreaming,
+        defaultText: "尚未生成",
+        streamingText: "由服务端自动构建",
+      });
+      diagnostics.prompt.scrollTop = diagnostics.prompt.scrollHeight;
+    }
+
+    function formatDiagnosticValue(value, options = {}) {
+      const {
+        isStreaming = false,
+        defaultText = "--",
+        streamingText = "流式模式暂不提供",
+      } = options;
+      if (value === 0) return "0";
+      if (value === null || value === undefined || value === "") {
+        return isStreaming ? streamingText : defaultText;
+      }
+      return typeof value === "string" ? value : String(value);
+    }
+
+    function resetProgress() {
+      if (taskSelect) {
+        taskSelect.value = "面相分析";
+      }
+      updateStep("info", "pending", "等待提交…");
+      updateStep("image", "pending", "尚未开始");
+      updateStep("bazi", "pending", "尚未开始");
+      updateStep("analysis", "pending", "尚未开始");
+      setStatusText("准备就绪");
+      setBanner(null, "");
+      resetDiagnostics();
+      processedImageBase64 = null;
+      processedImageMeta = null;
+      imagePreview.hidden = true;
+      previewImg.src = "";
+      imageMeta.textContent = "";
+
+      baziSummary.innerHTML = `
+        <div class="info-row">
+          <span>状态</span>
+          <span>等待测算…</span>
+        </div>`;
+      baziPillars.hidden = true;
+      baziPillars.innerHTML = "";
+      fortuneTimeline.hidden = true;
+      fortuneTimeline.innerHTML = "";
+      analysisOutput.textContent = "等待分析…";
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "";
+      const [datePart, timePart = "00:00"] = value.split("T");
+      const [hourMinute] = timePart.split(".");
+      const [hour = "00", minute = "00"] = hourMinute.split(":");
+      const seconds = timePart.includes(":") ? timePart.split(":")[2] || "00" : "00";
+      return `${datePart} ${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:${seconds.padStart(2, "0")}`;
+    }
+
+    function createCallId() {
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      const random = Math.floor(Math.random() * 1e6).toString().padStart(6, "0");
+      return `call-${Date.now()}-${random}`;
+    }
+
+    function formatCallTime(date = new Date()) {
+      const pad = (value) => String(value).padStart(2, "0");
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1);
+      const day = pad(date.getDate());
+      const hours = pad(date.getHours());
+      const minutes = pad(date.getMinutes());
+      const seconds = pad(date.getSeconds());
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    function buildGenerationRequestPayload(userInput, imageBase64, options) {
+      const { taskId, isStream } = options;
+      const callId = createCallId();
+      const callTime = formatCallTime();
+      const userId = `web-${userInput.name || "guest"}`;
+
+      const requestBody = {
+        is_stream: isStream,
+        user_call_data: {
+          task_info: {
+            user_id: userId,
+            call_id: callId,
+            call_time: callTime,
+            call_ip: "127.0.0.1",
+            task_id: taskId,
+          },
+          user_input_info: {
+            text_info: {
+              birth_datetime: userInput.birth_datetime,
+              location_name: userInput.location_name,
+              gender: userInput.gender,
+              name: userInput.name,
+            },
+            image_info: {
+              image_url: [imageBase64],
+              image_type: "base64",
+            },
+          },
+        },
+      };
+
+      return {
+        requestBody,
+        context: {
+          callId,
+          callTime,
+          taskId,
+          isStream,
+          userId,
+        },
+      };
+    }
+
+    function renderBazi(output) {
+      const info = output ?? {};
+      const infoItems = [];
+
+      if (info.name) {
+        infoItems.push(`<div class="info-row"><span>姓名</span><span>${info.name}</span></div>`);
+      }
+      if (info.gender) {
+        infoItems.push(`<div class="info-row"><span>性别</span><span>${info.gender}</span></div>`);
+      }
+      if (info.location_name) {
+        infoItems.push(`<div class="info-row"><span>出生地</span><span>${info.location_name}</span></div>`);
+      }
+      if (info.solar_datetime) {
+        infoItems.push(`<div class="info-row"><span>公历出生</span><span>${info.solar_datetime}</span></div>`);
+      }
+      if (info.true_solar_time) {
+        infoItems.push(`<div class="info-row"><span>真太阳时</span><span>${info.true_solar_time}</span></div>`);
+      }
+      if (info.lunar_date) {
+        infoItems.push(`<div class="info-row"><span>农历生日</span><span>${info.lunar_date}</span></div>`);
+      }
+      if (info.note) {
+        infoItems.push(`<div class="info-row"><span>提示</span><span>${info.note}</span></div>`);
+      }
+      if (!infoItems.length) {
+        infoItems.push(`<div class="info-row"><span>提示</span><span>未获取到详细时间信息</span></div>`);
+      }
+      baziSummary.innerHTML = infoItems.join("");
+
+      const pillars = info.bazi;
+      if (pillars) {
+        baziPillars.hidden = false;
+        baziPillars.innerHTML = `
+          <div class="pillar"><span>年柱</span><strong>${pillars.year ?? "?"}</strong></div>
+          <div class="pillar"><span>月柱</span><strong>${pillars.month ?? "?"}</strong></div>
+          <div class="pillar"><span>日柱</span><strong>${pillars.day ?? "?"}</strong></div>
+          <div class="pillar"><span>时柱</span><strong>${pillars.hour ?? "?"}</strong></div>`;
+      } else {
+        baziPillars.hidden = true;
+        baziPillars.innerHTML = "";
+      }
+
+      const timeline = info?.fortune?.fortune_timeline;
+      if (Array.isArray(timeline) && timeline.length > 0) {
+        fortuneTimeline.hidden = false;
+        fortuneTimeline.innerHTML = timeline
+          .map((item, idx) => {
+            const activeClass = item?.is_current ? " current" : "";
+            const badge = item?.is_current ? '<span class="fortune-badge">当前大运</span>' : "";
+            const period = item?.period ? `<span>${item.period}</span>` : "";
+            const direction = item?.direction ? `<span>${item.direction}</span>` : "";
+            return `
+              <li class="fortune-item${activeClass}">
+                <div class="fortune-head">
+                  <span>第 ${idx + 1} 运</span>
+                  ${badge}
+                </div>
+                <div class="fortune-luck">${item?.luck ?? "未知"}</div>
+                ${period}
+                ${direction}
+              </li>`;
+          })
+          .join("");
+      } else {
+        fortuneTimeline.hidden = true;
+        fortuneTimeline.innerHTML = "";
+      }
+    }
+
+    function renderAnalysis(text, autoScroll = true) {
+      analysisOutput.textContent = text || "暂未获取到分析结果，请稍后重试。";
+      if (autoScroll) analysisOutput.scrollTop = analysisOutput.scrollHeight;
+    }
+
+    async function loadImageFile(file) {
+      if (!file) throw new Error("请上传人脸照片");
+
+      const imageUrl = URL.createObjectURL(file);
+      const img = await new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = imageUrl;
+      });
+
+      URL.revokeObjectURL(imageUrl);
+      const { width, height } = img;
+      const minSide = Math.min(width, height);
+      if (minSide < 240) {
+        throw new Error(`图像尺寸过小（${width}×${height}），最短边需 ≥ 240 像素`);
+      }
+
+      let targetWidth = width;
+      let targetHeight = height;
+      let scaleInfo = "无需缩放";
+      const maxSide = Math.max(width, height);
+      if (maxSide > 640) {
+        const factor = 640 / maxSide;
+        targetWidth = Math.round(width * factor);
+        targetHeight = Math.round(height * factor);
+        scaleInfo = `已压缩至 ${targetWidth}×${targetHeight}`;
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+      const base64 = await new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            resolve(null);
+            return;
+          }
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const dataUrl = reader.result;
+            const pureBase64 = dataUrl.split(",")[1];
+            resolve(pureBase64);
+          };
+          reader.readAsDataURL(blob);
+        }, "image/jpeg", 0.9);
+      });
+
+      if (!base64) {
+        throw new Error("图像处理失败，请尝试更换照片");
+      }
+
+      processedImageBase64 = base64;
+      processedImageMeta = {
+        original: `${width}×${height}`,
+        final: `${targetWidth}×${targetHeight}`,
+        scale: scaleInfo,
+      };
+
+      previewImg.src = `data:image/jpeg;base64,${base64}`;
+      imageMeta.innerHTML = `
+        <div><strong>原始尺寸：</strong>${width}×${height}</div>
+        <div><strong>处理后尺寸：</strong>${targetWidth}×${targetHeight}</div>
+        <div><strong>缩放说明：</strong>${scaleInfo}</div>`;
+      imagePreview.hidden = false;
+    }
+
+    imageInput.addEventListener("change", async (event) => {
+      const file = event.target.files?.[0];
+      processedImageBase64 = null;
+      processedImageMeta = null;
+      imagePreview.hidden = true;
+      previewImg.src = "";
+      imageMeta.textContent = "";
+      if (!file) return;
+      updateStep("image", "active", "图像处理进行中…");
+      try {
+        await loadImageFile(file);
+        updateStep("image", "completed", "图像质检完成");
+        setBanner("success", "图像加载成功，可继续提交");
+      } catch (err) {
+        const message = err?.message || "图像处理失败，请检查照片是否清晰";
+        setBanner("error", message);
+        updateStep("image", "error", message);
+        processedImageBase64 = null;
+      }
+    });
+
+    async function readPlainTextStream(response) {
+      renderAnalysis("正在流式生成，请稍候…");
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        const fallback = await response.text();
+        renderAnalysis(fallback || "流式生成完成，但未收到有效内容。");
+        return fallback;
+      }
+
+      const decoder = new TextDecoder("utf-8");
+      let accumulated = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value, { stream: !done });
+          accumulated += chunk;
+          renderAnalysis(accumulated);
+        }
+        if (done) break;
+      }
+
+      accumulated += decoder.decode();
+      if (!accumulated.trim()) {
+        renderAnalysis("流式生成完成，但未收到有效内容。");
+      } else {
+        renderAnalysis(accumulated);
+      }
+      return accumulated;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const payload = {
+        name: formData.get("name")?.trim(),
+        gender: formData.get("gender")?.trim(),
+        birth_datetime: formatDateTime(formData.get("birth_datetime")),
+        location_name: formData.get("location_name")?.trim(),
+      };
+      const taskId = (formData.get("task_id") || "").trim() || "面相分析";
+      const isStreamRequested = !!streamToggle?.checked;
+      let requestContext = {
+        callId: null,
+        taskId,
+        isStream: isStreamRequested,
+      };
+
+      if (!payload.name || !payload.birth_datetime || !payload.location_name) {
+        setBanner("error", "请完整填写姓名、出生时间和出生地。");
+        setStatusText("信息不完整");
+        return;
+      }
+
+      const file = imageInput.files?.[0];
+      if (!processedImageBase64 || !processedImageMeta || !file) {
+        setBanner("error", "请上传符合要求的人脸照片。");
+        setStatusText("缺少人脸图像");
+        updateStep("image", "error", "请上传清晰的人脸照片");
+        return;
+      }
+
+      setBanner(null, "");
+      setStatusText("资料提交中…");
+      updateStep("info", "active", "验证资料中…");
+      updateStep("image", "completed", "图像质检完成");
+      updateStep("bazi", "pending", "尚未开始");
+      updateStep("analysis", "pending", "尚未开始");
+      submitBtn.disabled = true;
+      renderAnalysis("正在生成面相分析，请稍候…", false);
+
+      try {
+        updateStep("info", "completed", "资料校验通过");
+        updateStep("bazi", "active", "后台排盘中…");
+        updateStep("analysis", "pending", "尚未开始");
+        setStatusText("正在调用面相分析服务…");
+        renderBazi({
+          name: payload.name,
+          gender: payload.gender,
+          location_name: payload.location_name,
+          solar_datetime: payload.birth_datetime,
+          note: "后台正在计算八字与面相合参…",
+        });
+
+        const { requestBody, context } = buildGenerationRequestPayload(payload, processedImageBase64, {
+          taskId,
+          isStream: isStreamRequested,
+        });
+        requestContext = context;
+        updateDiagnostics({
+          prompt: "由服务端自动构建",
+          stream: context.isStream,
+          task_id: context.taskId,
+          call_id: context.callId,
+          image_size: processedImageMeta.final,
+          image_scale: processedImageMeta.scale,
+          model: "--",
+        });
+
+        const endpoint = "http://localhost:8000/generate";
+        const requestStarted = performance.now();
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+        });
+
+        const elapsed = Math.round(performance.now() - requestStarted);
+        if (!response.ok) {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const errorPayload = await response.json();
+            const detail = errorPayload?.detail;
+            const message = Array.isArray(detail)
+              ? detail.map(item => item?.msg).filter(Boolean).join("；")
+              : (detail || errorPayload?.error || `服务返回 ${response.status}`);
+            throw new Error(message);
+          }
+          const errorText = await response.text();
+          throw new Error(errorText || `服务返回 ${response.status}`);
+        }
+
+        updateStep("analysis", "active", "面相合参生成中…");
+
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("text/plain")) {
+          await readPlainTextStream(response);
+          updateDiagnostics({
+            prompt: "由服务端自动构建",
+            stream: true,
+            task_id: context.taskId,
+            call_id: context.callId,
+            response_ms: elapsed,
+            model: response.headers.get("x-model-used") || "--",
+            image_size: processedImageMeta.final,
+            image_scale: processedImageMeta.scale,
+          });
+        } else {
+          const analysisResult = await response.json();
+          if (!analysisResult.success) {
+            const message =
+              analysisResult?.error ||
+              analysisResult?.detail ||
+              "面相分析失败，请稍后再试。";
+            throw new Error(message);
+          }
+          renderAnalysis(analysisResult.data);
+          updateDiagnostics({
+            ...(analysisResult.usage || {}),
+            stream: false,
+            task_id: context.taskId,
+            call_id: context.callId,
+            response_ms: elapsed,
+            prompt: "由服务端自动构建",
+            model: analysisResult.usage?.model || response.headers.get("x-model-used") || "--",
+            image_size: processedImageMeta.final,
+            image_scale: processedImageMeta.scale,
+          });
+        }
+
+        updateStep("bazi", "completed", "八字合参完成");
+        updateStep("analysis", "completed", "面相合参完成");
+        setStatusText("分析完成");
+        setBanner("success", "面相合参完成，祝你顺遂！");
+      } catch (error) {
+        console.error(error);
+        const imageActive = steps.image.dataset.state === "active";
+        const baziActive = steps.bazi.dataset.state === "active";
+        const analysisActive = steps.analysis.dataset.state === "active";
+
+        let msg = error?.message || "分析过程中出现未知错误，请稍后重试。";
+        const fetchFailed = error instanceof TypeError || msg === "Failed to fetch" || msg === "NetworkError when attempting to fetch resource.";
+
+        if (fetchFailed) {
+          msg = "无法连接面相分析服务：http://localhost:8000/generate，请确认服务已启动。";
+        } else if (!analysisActive && !baziActive && !imageActive) {
+          msg = "网络请求失败，请检查后端服务或网络设置。";
+        }
+
+        renderAnalysis("分析失败：" + msg, false);
+        if (analysisActive) {
+          updateStep("analysis", "error", msg);
+        } else if (baziActive) {
+          updateStep("bazi", "error", msg);
+        } else if (imageActive) {
+          updateStep("image", "error", msg);
+        } else {
+          updateStep("info", "error", msg);
+        }
+        updateDiagnostics({
+          prompt: "由服务端自动构建",
+          stream: requestContext.isStream,
+          task_id: requestContext.taskId,
+          call_id: requestContext.callId,
+          image_size: processedImageMeta ? processedImageMeta.final : "--",
+          image_scale: processedImageMeta ? processedImageMeta.scale : "--",
+          error: msg,
+        });
+        setStatusText("发生错误");
+        setBanner("error", msg);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    form.addEventListener("reset", () => {
+      setTimeout(resetProgress, 0);
+    });
+
+    resetProgress();
+  </script>
+</body>
+</html>
