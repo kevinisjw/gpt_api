@@ -3,7 +3,7 @@ import asyncio
 from functools import wraps
 from typing import Any, Callable
 
-from gpt_api.logger_setup import logger
+from logger_setup import logger
 
 def async_retry(max_attempts: int = 3, delay: float = 1.0):
     """异步重试装饰器"""

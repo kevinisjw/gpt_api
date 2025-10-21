@@ -60,10 +60,6 @@ MAJOR_SOLAR_TERMS = [
 # 阳干
 YANG_STEMS = {"甲", "丙", "戊", "庚", "壬"}
 
-# 默认高德API密钥
-DEFAULT_GAODE_API_KEY = "2cd4e12a0bc627d900242b0ea6e10c65"
-
-
 # ============================================================================
 # 数据模型
 # ============================================================================
@@ -316,18 +312,18 @@ class LunarCalendarTool:
 class SolarTimeCalculator:
     """真太阳时计算器"""
 
-    def __init__(self, gaode_api_key: str, logger: logging.Logger):
+    def __init__(self, gaode_api_key: str, gaode_api_url: str, logger: logging.Logger):
         self.gaode_api_key = gaode_api_key
+        self.gaode_api_url = gaode_api_url
         self.tool = LunarCalendarTool()
         self.logger = logger
 
     def get_location_coordinates(self, location_name: str) -> Tuple[float, float]:
         """获取地理位置坐标"""
         self.logger.info("[GEO] 开始定位 | address='%s'", location_name)
-        url = "https://restapi.amap.com/v3/geocode/geo"
         params = {"key": self.gaode_api_key, "address": location_name, "output": "JSON"}
         try:
-            res = requests.get(url, params=params, timeout=8)
+            res = requests.get(self.gaode_api_url, params=params, timeout=8)
             res.raise_for_status()
             data = res.json()
             if data.get("status") == "1" and data.get("count") != "0":
@@ -631,7 +627,7 @@ class Bazi:
     5. API接口封装
     """
 
-    def __init__(self, gaode_api_key: Optional[str] = None, logger: Optional[logging.Logger] = None):
+    def __init__(self, gaode_api_key: Optional[str] = None, gaode_api_url: Optional[str] = None, logger: Optional[logging.Logger] = None):
         """
         初始化Bazi类
         
@@ -639,12 +635,13 @@ class Bazi:
             gaode_api_key: 高德地图API密钥，默认从环境变量获取
             logger: 日志记录器，默认创建新的
         """
-        self.gaode_api_key = gaode_api_key or os.getenv("GAODE_API_KEY", DEFAULT_GAODE_API_KEY)
+        self.gaode_api_key = os.getenv("GAODE_API_KEY") if gaode_api_key is None else gaode_api_key
+        self.gaode_api_url = os.getenv("GAODE_API_URL") if gaode_api_url is None else gaode_api_url
         if not self.gaode_api_key:
             raise ValueError("未提供高德 Web 服务 KEY")
         
         self.logger = logger or self._create_logger()
-        self.calculator = SolarTimeCalculator(self.gaode_api_key, self.logger)
+        self.calculator = SolarTimeCalculator(self.gaode_api_key, self.gaode_api_url, self.logger)
 
     def _create_logger(self) -> logging.Logger:
         """创建日志记录器"""

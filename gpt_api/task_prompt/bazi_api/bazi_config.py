@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from gpt_api.logger_setup import LOG_FILE_PATH
+from logger_setup import LOG_FILE_PATH
 
 load_dotenv()
 
@@ -9,7 +9,8 @@ load_dotenv()
 class BaziConfig:
     def __init__(self) -> None:
         # 高德地图配置
-        self.GAODE_API_KEY = os.getenv("GAODE_API_KEY", "2cd4e12a0bc627d900242b0ea6e10c65")
+        self.GAODE_API_KEY = os.getenv("GAODE_API_KEY")
+        self.GAODE_API_URL = os.getenv("GAODE_API_URL")
         
         # 服务配置
         self.API_HOST = os.getenv("BAZI_API_HOST", "0.0.0.0")

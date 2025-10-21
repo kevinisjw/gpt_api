@@ -1,9 +1,10 @@
-import asyncio,traceback,json,httpx
+import asyncio,traceback,json,httpx,os,sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from contextlib import asynccontextmanager, suppress
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from gpt_api.logger_setup import logger
+from logger_setup import logger
 
 from bazi_config import bazi_config
 from bazi_models import (
